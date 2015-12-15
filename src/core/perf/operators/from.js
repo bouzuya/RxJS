@@ -1,26 +1,17 @@
   var FromObservable = (function(__super__) {
     inherits(FromObservable, __super__);
-    function FromObservable(iterable, fn, scheduler) {
+    function FromObservable(iterable, scheduler) {
       this._iterable = iterable;
-      this._fn = fn;
       this._scheduler = scheduler;
       __super__.call(this);
     }
 
-    function createScheduleMethod(o, it, fn) {
+    function createScheduleMethod(o, it) {
       return function loopRecursive(i, recurse) {
         var next = tryCatch(it.next).call(it);
         if (next === errorObj) { return o.onError(next.e); }
         if (next.done) { return o.onCompleted(); }
-
-        var result = next.value;
-
-        if (isFunction(fn)) {
-          result = tryCatch(fn)(result, i);
-          if (result === errorObj) { return o.onError(result.e); }
-        }
-
-        o.onNext(result);
+        o.onNext(next.value);
         recurse(i + 1);
       };
     }
@@ -29,7 +20,7 @@
       var list = Object(this._iterable),
           it = getIterable(list);
 
-      return this._scheduler.scheduleRecursive(0, createScheduleMethod(o, it, this._fn));
+      return this._scheduler.scheduleRecursive(0, createScheduleMethod(o, it));
     };
 
     return FromObservable;
@@ -123,20 +114,13 @@
   /**
   * This method creates a new Observable sequence from an array-like or iterable object.
   * @param {Any} arrayLike An array-like or iterable object to convert to an Observable sequence.
-  * @param {Function} [mapFn] Map function to call on every element of the array.
   * @param {Any} [thisArg] The context to use calling the mapFn if provided.
   * @param {Scheduler} [scheduler] Optional scheduler to use for scheduling.  If not provided, defaults to Scheduler.currentThread.
   */
-  var observableFrom = Observable.from = function (iterable, mapFn, thisArg, scheduler) {
+  var observableFrom = Observable.from = function (iterable, thisArg, scheduler) {
     if (iterable == null) {
       throw new Error('iterable cannot be null.')
     }
-    if (mapFn && !isFunction(mapFn)) {
-      throw new Error('mapFn when provided must be a function');
-    }
-    if (mapFn) {
-      var mapper = bindCallback(mapFn, thisArg, 2);
-    }
     isScheduler(scheduler) || (scheduler = currentThreadScheduler);
-    return new FromObservable(iterable, mapper, scheduler);
+    return new FromObservable(iterable, scheduler);
   }
