@@ -184,7 +184,6 @@ The Observer and Observable interfaces provide a generalized mechanism for push-
 - [`throttle`](operators/throttle.md)
 - [`timeInterval`](operators/timeinterval.md)
 - [`timeout`](operators/timeout.md)
-- [`timeoutWithSelector`](operators/timeoutwithselector.md)
 - [`timestamp`](operators/timestamp.md)
 - [`toArray`](operators/toarray.md)
 - [`toMap`](operators/tomap.md)
